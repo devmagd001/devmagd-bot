@@ -1,0 +1,112 @@
+/* Estilos generales */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Roboto', sans-serif;
+}
+
+/* Estilo para dispositivos móviles */
+@media only screen and (max-width: 600px) {
+  body {
+    background-image: url("fondoVertical.webp");
+    background-size: cover;
+  }
+
+  a, h4{
+    font-size: 15px;
+    color: #33d348;
+    text-decoration: dashed;
+  }
+}
+
+/* Estilo para dispositivos de escritorio */
+@media only screen and (min-width: 600px) {
+  body {
+    background-image: url("fondo.webp");
+    background-size: cover;
+  }
+
+  a, h4{
+    font-size: 20px;
+    color: #63e0e0;
+    text-decoration: none;
+  }
+}
+
+input[type=text] {
+  border-radius: 10px;
+  text-align: center;
+}
+
+h1 {
+  text-align: center;
+  padding: 30px;
+  color: #63e0e0;
+  text-shadow: 0px 0px 10px rgb(93, 190, 255);
+}
+
+@keyframes zooming {
+  0% {
+    transform: scale(1); 
+  }
+  50% {
+    transform: scale(1.050); 
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Estilos de la tabla */
+table {
+  width: 80%;
+  margin: 20px auto;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+th, td {
+  padding: 10px;
+  text-align: left;
+}
+
+th {
+  background-color: #393e46;
+}
+
+tr:nth-child(even) {
+  background-color: #393e468e;
+}
+
+tr:hover {
+  animation: zooming 0.5s;
+  text-shadow: 0px 0px 10px rgb(93, 190, 255);
+  /* filter: blur(2px); */
+}
+
+table {
+  border-radius: 10px;
+}
+
+/* Estilos del botón */
+button {
+  display: block;
+  margin-left: auto;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  background-color: #f05454;
+  color: white;
+  cursor: pointer;
+
+}
+
+button:hover {
+  background-color: #7e2121;
+}
+

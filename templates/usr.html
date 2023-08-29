@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="static/style_user.css">
+    <link rel="icon" href="/static/favicon.png" type="image/x-icon">
+    <title>Usuario {{user}}</title>
+</head>
+
+<body>
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Size</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            <h1>Archivos del Usuario: {{user}}</h1>
+            <form>
+                <input type="text" id="input_text" name="input_text" placeholder="Pegar URL"><br>
+                <button type="submit" formaction="/submit">Enviar</button>
+            </form>
+            {% for elem in files -%}
+            <tr>
+                <td>
+                    <h4><a href="/file/{{Cryptuser}}/{{elem[0]}}">{{ elem[0] }}</a></h4>
+                </td>
+                <td>
+                    <h4>{{elem[1]}}</h4>
+                </td>
+                <td><button id="btnCopiar{{loop.index}}">Copy Link</button></td>
+                <script>
+                    document.getElementById("btnCopiar{{loop.index}}").addEventListener("click", function () {
+                        // Texto que deseas copiar al portapapeles
+                        var textoACopiar = "{{enlace}}file/{{Cryptuser}}/{{elem[0]}}";
+                        // Crear un elemento de texto temporal
+                        var elementoTemporal = document.createElement("textarea");
+                        elementoTemporal.value = textoACopiar;
+                        // Agregar el elemento temporal al DOM
+                        document.body.appendChild(elementoTemporal);
+                        // Seleccionar y copiar el contenido del elemento temporal
+                        elementoTemporal.select();
+                        document.execCommand("copy");
+                        // Remover el elemento temporal del DOM
+                        document.body.removeChild(elementoTemporal);
+                        // Mostrar una alerta o realizar alguna acción adicional
+                        alert("Texto copiado al portapapeles: " + textoACopiar);
+                    });
+                </script>
+            </tr>
+            {% endfor -%}
+        </tbody>
+    </table>
+
+</body>
+
+</html>

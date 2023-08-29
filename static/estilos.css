@@ -1,0 +1,16 @@
+
+/* Estilo para dispositivos móviles */
+@media only screen and (max-width: 600px) {
+  body {
+    background-image: url("fondoVertical.webp");
+    background-size: cover;
+  }
+}
+
+/* Estilo para dispositivos de escritorio */
+@media only screen and (min-width: 768px) {
+  body {
+    background-image: url("fondo.webp");
+    background-size: cover;
+  }
+}
