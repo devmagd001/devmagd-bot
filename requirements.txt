@@ -43,6 +43,7 @@ pyasn1
 pyasn1-modules 
 pybcj 
 pycares 
+pyminizip
 pycparser 
 pycryptodome 
 pycryptodomex 
