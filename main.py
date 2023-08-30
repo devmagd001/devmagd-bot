@@ -7,12 +7,11 @@ from pyrogram.types import InlineQueryResultArticle, InputTextMessageContent
 from unicodedata import normalize
 from psutil import virtual_memory, disk_usage
 from queue import Queue as cola
-# from pyrogram.errors import ChannelBanned, ChannelInvalid,ChannelPrivate, ChatIdInvalid, ChatInvalid
-# from pyrogram.errors.exceptions.bad_request_400 import PeerIdInvalid,InviteHashExpired,usernameInvalid,UserAlreadyParticipant
-from pyrogram.types import ReplyKeyboardMarkup, InlineKeyboardMarkup, InlineKeyboardButton, ForceReply, ReplyKeyboardRemove, InputMediaPhoto, InputMediaDocument, InputMediaVideo
-from ModulesDownloads.youtubedl import YoutubeDL
+from pyrogram.errors import ChannelBanned, ChannelInvalid,ChannelPrivate, ChatIdInvalid, ChatInvalid
+from pyrogram.errors.exceptions.bad_request_400 import PeerIdInvalid,InviteHashExpired,UserAlreadyParticipant
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ForceReply, InputMediaPhoto, InputMediaDocument, InputMediaVideo
 from ModulesDownloads.compress import split, getBytes
-from tools import cleanString, crearUsuario, download_of_youtube, comprobacion, download_youtube, extractInfoVideo, mostrar_opciones, showFiles, DIC_FILES, extractImg, sizeof, sendInfo
+from tools import cleanString, download_youtube, extractInfoVideo, mostrar_opciones, showFiles, DIC_FILES, extractImg, sendInfo
 from asyncio import sleep as asyncsleep, Queue
 from aiohttp import ClientSession
 from aiohttp import web
@@ -21,14 +20,11 @@ from time import time as tm, gmtime, sleep
 from datetime import datetime
 from random import randint
 from pyrogram.methods.utilities.idle import idle
-from pyrogram.session import session
-from pymongo import MongoClient
 from Downloads import DownloadFiles
 from os import listdir, mkdir, getenv, unlink, rename
 from os.path import getsize, join, isdir, isfile, exists
 from pydrive2.auth import GoogleAuth
 from pydrive2.drive import GoogleDrive
-from uploadDrive import upload_to_tdd
 from zipfile import ZipFile
 from rarfile import RarFile
 from py7zr import SevenZipFile
@@ -38,9 +34,6 @@ from cv2 import resize, imread, imwrite
 from json import dumps
 from ModulesDownloads.file_tipeClass import fileType
 from progrs import text_progres
-
-
-session.Session.WAIT_TIMEOUT = 60
 
 # CREDENCIALES DE GOOGLE DRIVE
 gauth = GoogleAuth(settings_file='./conf.yaml')
@@ -56,28 +49,22 @@ drive = GoogleDrive(gauth)
 API_HASH = "28aad172a316207be641435b1101d20a"
 API_ID = 19096404
 BOT_TOKEN = getenv("BOT_TOKEN")
-DATABASE = getenv("DATABASE")
 NAME_APP = getenv("NAME_APP")
 PORT = getenv('PORT')
-SERVER = getenv('SERVER')
-# SESSION_STRING = getenv('SESSION_STRING')
+SESSION_STRING = getenv('SESSION_STRING')
 
 try:
-    from Debug import DATABASE, BOT_TOKEN, PORT
+    from Debug import BOT_TOKEN, PORT, SESSION_STRING
     print("MODO DEBUG")
     DEBUG = True
 except:
     print("MODO ONLINE")
     DEBUG = False
 
-app = Client(name="rey_uploadpackBot", api_hash=API_HASH,
+app = Client(name="filemaster", api_hash=API_HASH,
              api_id=API_ID, bot_token=BOT_TOKEN)
-# userbot = Client("userbot", API_ID, API_HASH, bot_token=BOT_TOKEN, session_string=SESSION_STRING)
+userbot = Client("userbot", API_ID, API_HASH, bot_token=BOT_TOKEN, session_string=SESSION_STRING)
 
-client = MongoClient(DATABASE, serverSelectionTimeoutMS=9999999)
-UsersDB = client.MyDataBase
-user_collection = UsersDB.UserInfo
-free_users = UsersDB.FreeUsers
 # =====================Variables Globales
 saved_messages = {}
 LISTA_ARCHIVOS = []
@@ -89,9 +76,6 @@ USERS = []
 download_queues = {}
 download_queues_url = {}
 
-FREE_PASS = []
-for i in free_users.find({}):
-        FREE_PASS.append(i['username'])
 # =====================Variables Globales
 
 @app.on_message(filters.text & filters.forwarded & filters.private)
@@ -104,8 +88,7 @@ def handle_inline_query(client, query):
     global DIC_FILES
     FOLDER_FILES = listdir(query.from_user.username)
     count = 0
-    listfiles = f"**📆 Días restantes: {30 - user_collection.find_one({'username': query.from_user.username})['time_use']}**\n\n"
-    listfiles += f"**📂 RUTA: `./{query.from_user.username}`**\n\n"
+    listfiles = f"**📂 RUTA: `./{query.from_user.username}`**\n\n"
     fileSize = 0
     DIC_ARCH = {}
     for i in FOLDER_FILES:
@@ -176,7 +159,7 @@ async def subir_todo(app, callback_query):
     for i in FOLDER_FILES:
         if isfile(join(directory, i)):
             count += 1
-            await uploadOnefile(app, SMS, i, directory, user_collection, len(FOLDER_FILES), count)
+            await uploadOnefile(app, SMS, i, directory, len(FOLDER_FILES), count)
     await SMS.reply_sticker("./assets/fin.webp")
     await stk.delete()
 
@@ -202,7 +185,7 @@ def borrar_todo(app, callback_query):
             unlink(join(directory, i))
 
     saved_messages = showFiles(
-        app, SMS, user_collection, free_users, saved_messages, directory, username)
+        app, SMS, saved_messages, directory, username)
 
 
 @app.on_callback_query()
@@ -211,10 +194,6 @@ def callbackQuery(app, callback_query):
     global saved_messages
     global USER_ROOT
     global WORKING
-
-    FREE_PASS = []
-    for i in free_users.find({}):
-        FREE_PASS.append(i['username'])
 
     username = callback_query.from_user.username
     SMS = callback_query.message
@@ -233,7 +212,7 @@ def callbackQuery(app, callback_query):
     if CALLBACK_DATA == 'ver':
         SMS.delete()
         saved_messages = showFiles(
-            app, SMS, user_collection, free_users, saved_messages, directory, username)
+            app, SMS,   saved_messages, directory, username)
 
         # **************************************** RETROCEDER DIRECTORIO *********************************************
 
@@ -250,7 +229,7 @@ def callbackQuery(app, callback_query):
         except:
             pass
         saved_messages = showFiles(
-            app, SMS, user_collection, free_users, saved_messages, directory, username)
+            app, SMS,   saved_messages, directory, username)
 
         # **************************************** ATRAS *********************************************
 
@@ -263,7 +242,7 @@ def callbackQuery(app, callback_query):
             pass
 
         saved_messages = showFiles(
-            app, SMS, user_collection, free_users, saved_messages, directory, username)
+            app, SMS,   saved_messages, directory, username)
 
         # **************************************** OPCIONES *********************************************
 
@@ -273,7 +252,7 @@ def callbackQuery(app, callback_query):
                 i.delete()
         except:
             pass
-        mostrar_opciones(SMS, user_collection, username)
+        mostrar_opciones(SMS,  username)
 
         # **************************************** SUBIR ARCHIVO *********************************************
 
@@ -284,14 +263,10 @@ def callbackQuery(app, callback_query):
         SMS.edit_text('**Seleccione una opcion**', reply_markup=MARKUP)
 
     elif CALLBACK_DATA == 'saveon':
-        user_collection.update_one({'username': username}, {
-                                   "$set": {'savedesc': True}})
         SMS.edit_text("**Los archivos de Telegram se descargarán con el nombre que tenga en su descripción.**",
                       reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('📬 ARCHIVOS 📬', callback_data='ver')]]))
 
     elif CALLBACK_DATA == 'saveoff':
-        user_collection.update_one({'username': username}, {
-                                   "$set": {'savedesc': False}})
         SMS.edit_text("**☑️ DESACTIVADO**", reply_markup=InlineKeyboardMarkup(
             [[InlineKeyboardButton('📬 ARCHIVOS 📬', callback_data='ver')]]))
 
@@ -301,7 +276,7 @@ def callbackQuery(app, callback_query):
         WORKING[username] = True
         FILE = callback_query.message.text.replace(
             "✅ DESCARGA FINALIZADA \n\n🔖 Nombre: ", "").split("\n")[0]
-        # uploadOnefile(app, SMS, FILE, directory, user_collection, 1, 1)
+        # uploadOnefile(app, SMS, FILE, directory,  1, 1)
         WORKING[username] = False
 
         # **************************************** COMPRIMIR ARCHIVOS ****************************************
@@ -336,8 +311,6 @@ def callbackQuery(app, callback_query):
     elif CALLBACK_DATA == "zip" or CALLBACK_DATA == "7z":
         SMS.edit_text(
             f"**✅ Done, the format will be: `{CALLBACK_DATA}`**", reply_markup=BUTTON_BACK)
-        user_collection.update_one({'username': username}, {
-                                   "$set": {'compression_format': CALLBACK_DATA}})
 
     # **************************************** SUBIDA AUTOMATICA ****************************************#
 
@@ -351,20 +324,14 @@ def callbackQuery(app, callback_query):
             "**Cómo desea subir los archivos de forma automática?**", reply_markup=MARKUP)
 
     elif CALLBACK_DATA == "up_compress":
-        user_collection.update_one({'username': username}, {
-                                   "$set": {'autoUpload': 'up_compress'}})
         SMS.edit_text("📦 **Los archivos se subirán comprimidos**",
                       reply_markup=BUTTON_BACK)
 
     elif CALLBACK_DATA == "up_noCompress":
-        user_collection.update_one({'username': username}, {
-                                   "$set": {'autoUpload': 'up_noCompress'}})
         SMS.edit_text("📄 **Los archivos se subirán sin comprimir**",
                       reply_markup=BUTTON_BACK)
 
     elif CALLBACK_DATA == "desactivate":
-        user_collection.update_one({'username': username}, {
-                                   "$set": {'autoUpload': False}})
         SMS.edit_text(" **Subida automática ☑️ DESACTIVADA**",
                       reply_markup=BUTTON_BACK)
 
@@ -381,29 +348,6 @@ def callbackQuery(app, callback_query):
         SMS.delete()
         SMS.reply('**📚 Introduzca el tamaño de los zips: **',
                   reply_markup=ForceReply())
-
-    # **************************************** ESCRIBIR CAPTION ****************************************#
-
-    elif CALLBACK_DATA == 'caption':
-        SMS.delete()
-        try:
-            DESCAP = loads(user_collection.find_one(
-                {'username': username})['caption'])
-        except:
-            DESCAP = 'None'
-        msg = '**📝 Escriba el texto que desea que se incluya en los archivos subidos por el Bot:**'
-        msg += '**\n\n💬 Texto actual:**\n'
-        SMS.reply(msg, reply_markup=ForceReply())
-        if DESCAP != 'None':
-            MSGD = SMS.reply(f'{DESCAP["text"]}', entities=DESCAP['entities'], reply_markup=InlineKeyboardMarkup([[
-                InlineKeyboardButton('🚮 BORRAR ', callback_data='eliminarCaption')]]))
-            saved_messages[username] = {"sms_caption": MSGD}
-
-    elif CALLBACK_DATA == 'eliminarCaption':
-        SMS.delete()
-        user_collection.update_one({'username': username}, {
-                                   "$set": {'caption': 'None'}})
-        SMS.reply('✅', reply_markup=BUTTON_BACK)
 
     # **************************************** DESCARGAR VIDEO ****************************************#
 
@@ -437,18 +381,13 @@ def callbackQuery(app, callback_query):
                 "📄 DOCUMENTO", callback_data="Documento")],
             [InlineKeyboardButton('⏮ REGRESAR ⏮', callback_data='option')]]))
     elif CALLBACK_DATA == 'Video':
-        user_collection.update_one({'username': username}, {
-                                   "$set": {'video_format': 'Video'}})
         SMS.edit_text("**🎞 VIDEO**", reply_markup=BUTTON_BACK)
     elif CALLBACK_DATA == 'Documento':
-        user_collection.update_one({'username': username}, {
-                                   "$set": {'video_format': 'Documento'}})
         SMS.edit_text("**📄 DOCUMENTO**", reply_markup=BUTTON_BACK)
 
 # ******************************************************************************************************** #
 # ******************************************* RESPONDER MENSAJES ***************************************** #
 # ******************************************************************************************************** #
-
 
 @app.on_message(filters.command('add_buttons') & filters.reply)
 def Agregar_botones(app, message):
@@ -459,7 +398,6 @@ def Agregar_botones(app, message):
                   reply_markup=ForceReply())
     saved_messages[message.from_user.username] = {
         'SMS_BOTONES': message.reply_to_message}
-
 
 @app.on_message(filters.command('carbon'))
 def CarbonAPI(app, message):
@@ -490,8 +428,7 @@ async def subirArchivosComprimidos(app, message):
     await message.reply_to_message.delete()
     await message.delete()
     FOLDER_FILES = listdir(directory)
-    await uploadFiles(app, message, message.text, directory, FOLDER_FILES, user_collection)
-
+    await uploadFiles(app, message, message.text, directory, FOLDER_FILES)
 
 @app.on_message(filters.reply)
 def Responder_Mensajes(app, message):
@@ -542,63 +479,10 @@ def Responder_Mensajes(app, message):
                 f"{username}-thumb.jpg", reply_markup=BUTTON_BACK)
             message.delete()
             ID.delete()
-            user_collection.update_one({'username': username}, {
-                                       "$set": {'file_thumb': id_doc.document.file_id}})
+
         except Exception as x:
             return message.reply(f"🚫 **Ah ocurrido un error\n{x}** 🚫", reply_markup=BUTTON_BACK)
         return
-
-    # =============================== CARGAR TXT ===============================#
-
-    try:
-        if message.text.startswith("/loadusers"):
-            if SMS_REPLY.document.mime_type == "text/plain":
-                if username == "ErickYasser" or username == "KOD_16":
-                    free_userss = []
-                    for i in free_users.find({}):
-                        free_userss.append(i['username'])
-                    file = SMS_REPLY.download(file_name="./")
-                    txt = "**Usuarios Añadidos: \n"
-                    with open(file, 'r') as f:
-                        for i in f.read().split('\n'):
-                            if i.split("=")[0] not in free_userss:
-                                nm = i.split("=")[0]
-                                free_users.insert_one({'username': nm})
-                                txt += f"👤 @{nm}\n"
-                    txt += "**"
-                    unlink(file)
-                    message.reply(txt)
-                    return
-
-        if message.text.startswith("/delusers"):
-            if SMS_REPLY.document.mime_type == "text/plain":
-                if username == "ErickYasser" or username == "KOD_16":
-                    free_userss = []
-                    for i in free_users.find({}):
-                        free_userss.append(i['username'])
-                    file = SMS_REPLY.download(file_name="./")
-                    txt = "**Usuarios Eliminados: \n"
-                    with open(file, 'r') as f:
-                        for i in f.read().split('\n'):
-                            if i in free_userss:
-                                nm = i.split("=")[0]
-                                free_users.delete_one({'username': nm})
-                                txt += f"🚷 @{nm}\n"
-
-                    txt += "**"
-                    unlink(file)
-                    message.reply(txt)
-                    return
-
-        if message.text.startswith("/loadtxt"):
-            if SMS_REPLY.document.mime_type == "text/plain":
-                fl = SMS_REPLY.download(file_name="./")
-                with open(fl, 'r') as txt:
-                    for i in txt.read().split("\n"):
-                        print(i)
-            return
-    except:
-        pass
 
        # =============================== ENVIAR BOTONERA ===============================#
 
@@ -656,21 +540,6 @@ def Responder_Mensajes(app, message):
         except Exception as x:
             message.reply(x)
 
-           # =============================== AÑADIR CAPTION ===============================#
-
-    elif SMS_REPLY.text.startswith('📝 Escriba el texto que desea que se incluya en los archivos subidos por el Bot:'):
-        if len(message.text) > 1024:
-            return message.reply('**⚠️ El mensaje enviado es demasiado largo**', reply_markup=BUTTON_BACK)
-        CAPTION_D = dumps({'text': message.text, 'entities': message.entities})
-        user_collection.update_one({'username': username}, {
-                                   "$set": {'caption': CAPTION_D}})
-        message.reply('✅', reply_markup=BUTTON_BACK)
-        try:
-            saved_messages[username]["sms_caption"].delete()
-        except:
-            pass
-        SMS_REPLY.delete()
-
         # =============================== RENOMBRAR ARCHIVOS ===============================#
 
     elif SMS_REPLY.text.startswith("📝 Escriba un nuevo nombre para: "):
@@ -699,7 +568,7 @@ def Responder_Mensajes(app, message):
         WORKING[username] = True
         SMS_REPLY.delete()
         message.delete()
-        compressfiles(app, message, message.text, directory, user_collection)
+        compressfiles(app, message, message.text, directory)
         message.reply("**✅ COMPRESION FINALIZADA**", reply_markup=InlineKeyboardMarkup(
             [[InlineKeyboardButton('📬 ARCHIVOS 📬', callback_data='ver')]]))
         WORKING[username] = False
@@ -710,8 +579,6 @@ def Responder_Mensajes(app, message):
         try:
             zips = int(message.text)
             if zips >= 1 and zips <= 2000:
-                user_collection.update_one({'username': username}, {
-                                           "$set": {'zip_size': zips}})
                 message.reply(
                     f"✅ **Zips establecidos en: [ `{zips} MB` ]**", reply_markup=BUTTON_BACK)
             else:
@@ -728,52 +595,13 @@ def Responder_Mensajes(app, message):
         SMS_REPLY.delete()
         message.delete()
         compressSelectedFiles(message, message.text, username,
-                              saved_messages[username]["listCompress"], user_collection, directory)
+                              saved_messages[username]["listCompress"],  directory)
         message.reply("**✅ Compresión realizada**", reply_markup=BUTTON_BACK)
         WORKING[username] = False
 
 # ******************************************************************************************************** #
 # ******************************************* RECIBIR MENSAJES ******************************************* #
 # ******************************************************************************************************** #
-
-@app.on_message(filters.command(['logs', 'restart']) & filters.user(['KOD_16', 'ErickYasser', 'FileMaster_Service']))
-def Administrador(app, message):
-    """
-    La función `Administrador` es una función de Python que maneja comandos relacionados con el reinicio
-    de dynos y la recuperación de registros para una aplicación Heroku.
-
-    :param app: El parámetro `app` es el nombre de la aplicación Heroku que desea administrar. En este
-    caso, el nombre de la aplicación es "filemaster"
-    :param message: El parámetro `mensaje` es el mensaje de entrada recibido por la función. Se utiliza
-    para determinar la acción a realizar por la función `Administrador`
-    """
-    response = 0
-    api_key = "e8bb7e45-fe67-4e01-92a6-fb76b63ccd15"
-    headers = {
-        "Accept": "application/vnd.heroku+json; version=3",
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-    }
-
-    if message.text.startswith('/restart'):
-        url = f"https://api.heroku.com/apps/{NAME_APP}/dynos"
-        response = delete(url, headers=headers)
-        if response.status_code == 202:
-            message.reply('**Dyno restarted successfully**')
-        else:
-            message.reply(f'**Error restarting dyno: {response.status_code}**')
-
-    elif message.text.startswith('/logs'):
-        url = f"https://api.heroku.com/apps/{NAME_APP}/log-sessions"
-        response = post(url, headers=headers)
-        log_url = response.json()["logplex_url"]
-        logs_response = get(log_url, headers=headers, stream=True)
-        log = ""
-        for line in logs_response.iter_lines():
-            if line:
-                log += line.decode("utf-8").split(':')[-1] + '\n\n'
-        message.reply(f'**{log}**')
-
 
 @app.on_message(filters.regex('/up_') & ~ filters.regex('/up_all') & ~ filters.regex('/up_album'))
 async def subirArchivo(app, message):
@@ -790,12 +618,6 @@ async def subirArchivo(app, message):
     :return: nada (Ninguno).
     """
     global saved_messages
-    FREE_PASS = []
-    for i in free_users.find({}):
-        FREE_PASS.append(i['username'])
-
-    if not user_collection.find_one({'username': message.from_user.username})["user_vip"] and message.from_user.username not in FREE_PASS:
-        return
 
     try:
         for i in saved_messages[message.from_user.username]["sms_files"]:
@@ -809,7 +631,7 @@ async def subirArchivo(app, message):
         directory = USER_ROOT[message.from_user.username]
     except:
         directory = f"{message.from_user.username}"
-    await uploadOnefile(app, message, FILE_NAME, directory, user_collection, 1, 1)
+    await uploadOnefile(app, message, FILE_NAME, directory,  1, 1)
 
 
 @app.on_message(filters.command('status'))
@@ -851,12 +673,6 @@ async def subirAlbum(app, message):
     mensaje, etc
     :return: nada.
     """
-    FREE_PASS = []
-    for i in free_users.find({}):
-        FREE_PASS.append(i['username'])
-
-    if not user_collection.find_one({'username': message.from_user.username})["user_vip"] and message.from_user.username not in FREE_PASS:
-        return
 
     try:
         directory = USER_ROOT[message.from_user.username]
@@ -911,28 +727,6 @@ async def subirAlbum(app, message):
     await app.send_media_group(message.chat.id, ListVideo)
     await app.send_media_group(message.chat.id, ListDocument)
     await stk.delete()
-
-@app.on_message(filters.command('sms_all') & filters.user(['KOD_16', 'FileMaster_Service']))
-async def enviarMensajeGlobal(app, message):
-    """
-    La función `enviarMensajeGlobal` envía un mensaje global a todos los usuarios de una colección,
-    utilizando sus ID de usuario, y devuelve un mensaje de confirmación cuando se completa la tarea.
-
-    :param app: El parámetro "aplicación" es una instancia de la aplicación o bot que se utiliza para
-    enviar mensajes. Se utiliza para llamar al método "send_message" para enviar mensajes a los usuarios
-    :param message: El parámetro `message` es el objeto de mensaje que contiene el texto y otra
-    información del mensaje recibido por el bot
-    """
-    mensaje = message.text.replace("/sms_all", "")
-    user = user_collection.find()
-    for i in user:
-        try:
-            await app.send_message(i['user_id'], mensaje)
-        except:
-            pass
-
-    await message.reply('TAREA FINALIZADA')
-
 
 @app.on_message(filters.command('extractimg'))
 async def extraer_imagenes(app, message):
@@ -1012,11 +806,11 @@ def descargar_archivos_url(username):
     
     while not queue.empty():
         message, url, username, directory, format = queue.get()
-        try: DownloadFiles(app, message, url, username, user_collection, directory, format, queue.qsize())
+        try: DownloadFiles(app, userbot, message, url, username,  directory, format, queue.qsize())
         except Exception as x:message.reply(x)
         queue.task_done()
         
-    saved_messages = showFiles(app, message, user_collection, free_users, saved_messages, directory, username)
+    saved_messages = showFiles(app, message,   saved_messages, directory, username)
     del download_queues_url[username]
 
 # ===============================************************=============================== #
@@ -1035,7 +829,6 @@ def Recibir_Mensajes(app, message):
     # ID CHAT: -1001718820562
 
     username = message.from_user.username
-    crearUsuario(app, message, username, user_collection, free_users)
     try:
         mkdir(username)
     except:
@@ -1050,25 +843,9 @@ def Recibir_Mensajes(app, message):
         [[InlineKeyboardButton('📬 ARCHIVOS 📬', callback_data='ver')]])
     SMS_TEXT = message.text
     CHAT_ID = message.chat.id
-
-    freePass = []
-    for i in free_users.find({}):
-        freePass.append(i['username'])
-
-    if username == "KOD_16" or username == "FileMaster_Service":
-        if SMS_TEXT.startswith("@"):
-            username = SMS_TEXT[1:]
-            TXT = ''
-            duser = user_collection.find_one({'username': username})
-            for i in duser.items():
-                TXT += f'**{i[0]}: **{str(i[1])}\n'
-            message.reply(TXT)
-            return
-
     ################################ COMANDOS ################################
 
     if SMS_TEXT.startswith("/start"):
-
         try:
             for i in saved_messages[username]["sms_files"]:
                 i.delete()
@@ -1108,8 +885,7 @@ Espero que le guste mi servicio y que se sienta satisfecho. 😊
                 i.delete()
         except:
             pass
-
-        mostrar_opciones(message, user_collection, username)
+        mostrar_opciones(message,  username)
 
         # =============================== CAMBIAR DE DIRECTORIO ===============================#
 
@@ -1123,7 +899,7 @@ Espero que le guste mi servicio y que se sienta satisfecho. 😊
         directory = f"{directory}/{FOLDER}"
         USER_ROOT[username] = directory
         saved_messages = showFiles(
-            app, message, user_collection, free_users, saved_messages, directory, username)
+            app, message,   saved_messages, directory, username)
 
         # =============================== MOVER ARCHIVOS A UNA CARPETA ===============================#
 
@@ -1184,10 +960,6 @@ Espero que le guste mi servicio y que se sienta satisfecho. 😊
         # =============================== PICAR ARCHIVOS ===============================#
 
     elif SMS_TEXT.startswith("/split "):
-        # if WORKING:
-        #     message.reply('**⏱ El Bot ya tiene un proceso activo, por favor espere...**')
-        # else:
-        #     WORKING[username] = True
         try:
             NUM = SMS_TEXT.split(" ")[1]
             if NUM.isdigit():
@@ -1195,9 +967,8 @@ Espero que le guste mi servicio y que se sienta satisfecho. 😊
                 if int(NUM) > len(listdir(path=directory)):
                     return message.reply('**⚠️ El número indicado no se encuentra en la lista**', reply_markup=BUTTON_BACK)
                 SMS = message.reply(
-                    f"✂️ **Dividiendo archivo: `{FILE}`\n📚 Tamaño de partes: `{user_collection.find_one({'username':username})['zip_size']} MB`**")
-                split(f'./{join(directory, FILE)}', f'./{username}', getBytes(
-                    f"{user_collection.find_one({'username':username})['zip_size']}.0MiB"))
+                    f"✂️ **Dividiendo archivo: `{FILE}`\n📚 Tamaño de partes: `2000 MB`**")
+                split(f'./{join(directory, FILE)}', f'./{username}', getBytes("2000.0MiB"))
                 SMS.edit_text("**✅ Tarea finalizada con éxito**",
                               reply_markup=BUTTON_FILES)
             else:
@@ -1216,7 +987,7 @@ Espero que le guste mi servicio y que se sienta satisfecho. 😊
         except:
             pass
         saved_messages = showFiles(
-            app, message, user_collection, free_users, saved_messages, directory, username)
+            app, message,   saved_messages, directory, username)
 
     elif SMS_TEXT.startswith("/dl_"):
         try:
@@ -1228,11 +999,11 @@ Espero que le guste mi servicio y que se sienta satisfecho. 😊
         if isdir(f"{directory}/{FILE}"):
             rmtree(join(directory, FILE))
             saved_messages = showFiles(
-                app, message, user_collection, free_users, saved_messages, directory, username)
+                app, message,   saved_messages, directory, username)
         else:
             unlink(f"{directory}/{FILE}")
             saved_messages = showFiles(
-                app, message, user_collection, free_users, saved_messages, directory, username)
+                app, message,   saved_messages, directory, username)
 
     elif SMS_TEXT.startswith("/rn_"):
         try:
@@ -1264,7 +1035,7 @@ Espero que le guste mi servicio y que se sienta satisfecho. 😊
         except FileExistsError:
             return message.reply("**⚠️ Ya existe una carpeta con ese nombre**")
         saved_messages = showFiles(
-            app, message, user_collection, free_users, saved_messages, directory, username)
+            app, message,   saved_messages, directory, username)
 
         # =============================== ELIMINAR ARCHIVOS SELECCIONADOS ===============================#
 
@@ -1344,125 +1115,28 @@ Espero que le guste mi servicio y que se sienta satisfecho. 😊
 
                 sms.delete()
                 saved_messages = showFiles(
-                    app, message, user_collection, free_users, saved_messages, directory, username)
+                    app, message,   saved_messages, directory, username)
             else:
                 message.reply(
                     "**⚠️ Debe introducir el número correspondiente al video\n\nEjemplo: `/split 1`**", reply_markup=BUTTON_BACK)
         except Exception as x:
             message.reply(x)
-
-           # =============================== AÑADIR VIP ===============================#
-
-    elif SMS_TEXT.startswith("/addvip"):
-        if username == "FileMaster_Service" or username == "KOD_16":
-            try:
-                username = SMS_TEXT.split(' ')[-1]
-                if username.startswith('@'):
-                    username = username[1:]
-                user = app.get_users(username)
-                user_collection.update_one({'username': username}, {
-                                           "$set": {'time_use': [0, 0, 0]}})
-                user_collection.update_one({'username': username}, {
-                                           "$set": {'user_vip': True}})
-                user_collection.update_one({'username': username}, {"$set": {'date_join': [
-                                           gmtime(tm()).tm_mday, gmtime(tm()).tm_mon, gmtime(tm()).tm_year]}})
-            except Exception as x:
-                print(x)
-
-            message.reply(
-                f'**Usuario: @{username} TIENE ACCESO: {user_collection.find_one({"username":username})["user_vip"]}**')
-            app.send_sticker(user.id, "./assets/acc.tgs")
-            app.send_message(
-                user.id, "**🔓 SE LE HA CONCEDIDO EL ACCESO AL BOT\n\nℹ️ __Cualquier duda o sugerencia Contactar a :\n👤 @FileMaster_Service__**")
-
-            # =============================== QUITAR VIP ===============================#
-
-    elif SMS_TEXT.startswith("/delvip"):
-        if username == "UploadPack" or username == "KOD_16":
-            username = SMS_TEXT.split(' ')[-1]
-            if username.startswith('@'):
-                username = username[1:]
-            user_collection.update_one({'username': username}, {
-                                       "$set": {'user_vip': False}})
-            message.reply(f'**Usuario: @{username} NO TIENE ACCESO**')
-
-            # =============================== VER USUARIOS ===============================#
-
-    elif SMS_TEXT.startswith("/users"):
-        if username == 'KOD_16' or username == 'ErickYasser':
-            txt = "Usuarios con libre acceso:\n"
-            dates = set()
-            for i in free_users.find():
-                dates.add(i['date_join'])
-            
-            for date in dates:
-                txt += f'\n● {date}\n'
-                for i in free_users.find({}):
-                    if i['date_join'] == date:
-                        txt += f"@{i['username']}\n"
-                    
-            with open("Usuarios.txt", "w", encoding='UTF-8') as user:
-                user.write(txt)
-            try:
-                message.reply(f"**{txt}**")
-                message.reply_document("Usuarios.txt")
-            except:
-                message.reply_document("Usuarios.txt")
-
-            # =============================== ELIMINAR USUARIOS ===============================#
-
-    elif SMS_TEXT.startswith("/deluser"):
-        if username == 'KOD_16' or username == 'ErickYasser':
-            delusr = SMS_TEXT.replace("/deluser", "").split(" ")
-            txt = "**Usuarios Eliminados: **\n"
-            for i in delusr:
-                if len(i) > 1:
-                    if i.startswith('@'):
-                        i = i[1:]
-                    free_users.delete_one({'username': i})
-                    txt += f"🚷** @{i}**\n"
-            message.reply(txt)
-
-            # =============================== AÑADIR USUARIOS ===============================#
-
-    elif SMS_TEXT.startswith("/adduser"):
-        if username == 'KOD_16' or username == 'ErickYasser':
-            addusr = SMS_TEXT.replace("/adduser", "").split(" ")
-            txt = "**Usuarios Añadidos: **\n"
-            li = []
-            for i in free_users.find():
-                li.append(i['username'])
-
-            for i in addusr:
-                if len(i) > 1:
-                    if i.startswith('@'):
-                        i = i[1:]
-                    if i not in li:
-                        fecha_actual = datetime.now(pytz.timezone('America/Havana'))
-                        free_users.insert_one({'username': i,
-                                               'date_join': fecha_actual.strftime("%d/%m/%Y")})
-                      
-                        txt += f"👤** @{i}**\n"
-                    else:
-                        return message.reply(f"**El usuario @{i} ya se encuentra en la base de datos**")
-            message.reply(txt)
         
-    #     #=============================== UNIRSE AL CANAL DE TELEGRAM ===============================#
-    # elif message.text.split("/")[2] == "t.me" and message.text.split("/")[-1].isdigit() == False and message.text.endswith("?single") == False:
-    #     if user_collection.find_one({'username':username})['supervip'] or username in freePass:
-    #         if message.text.startswith('https://t.me/') or message.text.startswith('https://t.me/joinchat/'):
-    #             if username == "ErickYasser" or username == "KOD_16":
-    #                 msag = message.reply("**⌛️ ACCEDIENDO**")
-    #                 try:
-    #                     chat = userbot.join_chat(message.text)
-    #                     id = chat.id
-    #                     msag.edit_text('**✅ ACCESO CONCEDIDO**')
-    #                 except (usernameInvalid, ChannelInvalid, InviteHashExpired, PeerIdInvalid):
-    #                     msag.edit_text('**🚫 ENLACE NO VÁLIDO**')
-    #                 except UserAlreadyParticipant:
-    #                     msag.edit_text('**⚠️ YA POSEE ACCESO**')
-    #             else:
-    #                 return message.reply("**⚠️ Debe enviar el enlace a @KOD_16 para ser revisado y aprobado**")
+        #=============================== UNIRSE AL CANAL DE TELEGRAM ===============================#
+    
+    elif SMS_TEXT.startswith('https://t.me/') or SMS_TEXT.startswith('https://t.me/joinchat/'):
+        if SMS_TEXT.split("/")[2] == "t.me" and SMS_TEXT.split("/")[-1].isdigit() == False and SMS_TEXT.endswith("?single") == False:
+            msag = message.reply("**⌛️ ACCEDIENDO**")
+            try:
+                chat = userbot.join_chat(SMS_TEXT)
+                id = chat.id
+                msag.edit_text('**✅ ACCESO CONCEDIDO**')
+            except (ChannelInvalid, InviteHashExpired, PeerIdInvalid):
+                msag.edit_text('**🚫 ENLACE NO VÁLIDO**')
+            except UserAlreadyParticipant:
+                msag.edit_text('**⚠️ YA POSEE ACCESO**')
+                
+        return
 
 # **************************************** GUARDAR ARCHIVOS PARA DESCARGAR **************************************** #
 
@@ -1480,38 +1154,18 @@ def download_files_telegram(username):
         message, directory = queue.get()
         sms = message.reply('**🚛 Downloading...**', quote=True)
         start = tm()
-        if user_collection.find_one({'username': username})['savedesc']:
-            if message.caption == None:
-                file = app.download_media(message=message, file_name=f'{directory}/', progress=progressddl, progress_args=(sms, start, queue.qsize()))
-                folder_files[username].append(file.split("\\")[-1])
-            else:
-                caption = cleanString(String=message.caption.split('\n')[0])
-                file = app.download_media(message=message, file_name=f'{directory}/', progress=progressddl, progress_args=(sms, start, queue.qsize()))
-                rename(join(directory, file), join(directory, caption+file[-4:]))
-                folder_files[username].append(caption+file[-4:].split("\\")[-1])
-        else:
-            file = app.download_media(message=message, file_name=f'{directory}/', progress=progressddl, progress_args=(sms, start, queue.qsize()))
-            folder_files[username].append(file.split("\\")[-1])
+        file = app.download_media(message=message, file_name=f'{directory}/', progress=progressddl, progress_args=(sms, start, queue.qsize()))
+        folder_files[username].append(file.split("\\")[-1])
                     
         sms.edit_text('✅ **Finished**')
         queue.task_done()
-        
-    if user_collection.find_one({'username': username})['user_vip'] == True or username in FREE_PASS:
-        if user_collection.find_one({'username': username})["autoUpload"] == "up_compress":
-            NM_ZIP = directory.split("/")[-1] + str(randint(100, 200))
-            uploadFiles(app, message, NM_ZIP, directory, folder_files[username], user_collection)
-        elif user_collection.find_one({'username': username})["autoUpload"] == "up_noCompress":
-            count = 0
-            for i in folder_files[username]:
-                count += 1
-                uploadOnefile(app, message, i, directory, user_collection, len(folder_files[username]), count)
-
+    
     try:
         for i in saved_messages[username]["sms_files"]:
             i.delete()
     except: pass
     
-    saved_messages = showFiles(app, message, user_collection, free_users, saved_messages, directory, username)
+    saved_messages = showFiles(app, message,   saved_messages, directory, username)
     del download_queues[username]
     
 @app.on_message(filters.media & filters.private)
@@ -1563,16 +1217,15 @@ async def despertar(sleep_time=10 * 60):
     while True:
         await asyncsleep(sleep_time)
         async with ClientSession() as session:
-            async with session.get(f'https://{NAME_APP}.{SERVER}.com/' + "/Despiertate"):
+            async with session.get(f'https://{NAME_APP}.render.com/' + "/Despiertate"):
                 pass
 
 async def run_server():
     await app.start()
     print('Bot Iniciado')
     await sendMessage()
-    # Iniciando User Bot
-    # await userbot.start()
-    # print('User Bot Iniciado')
+    await userbot.start()
+    print('User Bot Iniciado')
     await runner.setup()
     print('Iniciando Server')
     await web.TCPSite(runner, host='0.0.0.0', port=PORT).start()

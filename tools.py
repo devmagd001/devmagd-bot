@@ -70,130 +70,9 @@ def download_of_youtube(message, each, bot, url, DIRECTORY):
 def sumar(a, b):
     return a - b
 
-
-def crearUsuario(app, message, username, USER_COLLECTION, FREE_USERS):
-    freePass = []
-    for i in FREE_USERS.find({}):
-        freePass.append(i['username'])
-
-    if USER_COLLECTION.find_one({'username': username}) == None:
-        USER_COLLECTION.insert_one({
-            'username': username,
-            'user_id': message.from_user.id,
-            'send_link': True,
-            'user_vip': False,
-            'autoUpload': 'up_compress',
-            'ban_user': False,
-            'compression_format': 'zip',
-            'youtube_format': ['22', '1280x720 (720p)', 'mp4'],
-            'twitch_format': ['1080p60', ' 1920x1080 (Source)', 'mp4'],
-            'date_join': [gmtime(time()).tm_mday, gmtime(time()).tm_mon, gmtime(time()).tm_year],
-            'last_use': [0, 0, 0],
-            'time_use': [0, 0, 0],
-            'file_thumb': 'BQACAgEAAxkDAAIeWmMT7y4sQ6zeL_Yqs8QZpPsuAhKKAAJNBAACHBShRO2_9RU9hjDHHgQ',
-            'zip_size': 2000,
-            'number_use': 0,
-            'total_upload': 0,
-        })
-
-    USER_COLLECTION.update_one({'username': username}, {"$set": {'last_use': [
-                               gmtime(time()).tm_mday, gmtime(time()).tm_mon, gmtime(time()).tm_year]}})
-    date_join = USER_COLLECTION.find_one({'username': username})['date_join']
-    last_use = USER_COLLECTION.find_one({'username': username})['last_use']
-    if last_use[1] != date_join[1]:
-        result = last_use[0] + (30 - date_join[0])
-    else:
-        result = list(map(sumar, last_use, date_join))[0]
-
-    USER_COLLECTION.update_one({'username': username}, {
-                               "$set": {'time_use': result}})
-
-    try:
-        USER_COLLECTION.find_one({'username': username})['video_format']
-    except:
-        USER_COLLECTION.update_one({'username': username}, {
-                                   "$set": {'video_format': 'Video'}})
-
-    try:
-        USER_COLLECTION.find_one({'username': username})['savedesc']
-    except:
-        USER_COLLECTION.update_one({'username': username}, {
-                                   "$set": {'savedesc': False}})
-
-    try:
-        USER_COLLECTION.find_one({'username': username})['supervip']
-    except:
-        USER_COLLECTION.update_one({'username': username}, {
-                                   "$set": {'supervip': False}})
-
-    try:
-        USER_COLLECTION.find_one({'username': username})['caption']
-    except:
-        USER_COLLECTION.update_one({'username': username}, {
-                                   "$set": {'caption': 'None'}})
-
-    if not USER_COLLECTION.find_one({'username': username})["user_vip"]:
-        try:
-            USER_COLLECTION.find_one({'username': username})['muestraGratis']
-        except:
-            USER_COLLECTION.update_one({'username': username}, {
-                                       "$set": {'muestraGratis': True}})
-
-        try:
-            USER_COLLECTION.find_one({'username': username})['muestraProbada']
-        except:
-            USER_COLLECTION.update_one({'username': username}, {
-                                       "$set": {'muestraProbada': False}})
-
-    if username not in freePass:
-        if USER_COLLECTION.find_one({'username': username})["user_vip"]:
-            if USER_COLLECTION.find_one({'username': username})["time_use"] >= 30:
-                app.send_message(
-                    1231106365, f"**Usuario: @{username} SIN ACCESO**")
-                USER_COLLECTION.update_one({'username': username}, {
-                                           "$set": {'user_vip': False}})
-                USER_COLLECTION.update_one({'username': username}, {
-                                           "$set": {'supervip': False}})
-                USER_COLLECTION.update_one({'username': username}, {
-                                           "$set": {'time_use': 0}})
-                USER_COLLECTION.update_one({'username': username}, {"$set": {'date_join': [
-                                           gmtime(time()).tm_mday, gmtime(time()).tm_mon, gmtime(time()).tm_year]}})
-                USER_COLLECTION.update_one({'username': username}, {
-                                           "$set": {'total_upload': 0}})
-                USER_COLLECTION.update_one({'username': username}, {
-                                           "$set": {'muestraGratis': False}})
-        else:
-            if USER_COLLECTION.find_one({'username': username})["muestraProbada"] == False:
-                USER_COLLECTION.update_one({'username': username}, {
-                                           "$set": {'time_use': 0}})
-                USER_COLLECTION.update_one({'username': username}, {"$set": {'date_join': [
-                                           gmtime(time()).tm_mday, gmtime(time()).tm_mon, gmtime(time()).tm_year]}})
-                USER_COLLECTION.update_one({'username': username}, {
-                                           "$set": {'muestraProbada': True}})
-
-            if USER_COLLECTION.find_one({'username': username})["time_use"] >= 2:
-                USER_COLLECTION.update_one({'username': username}, {
-                                           "$set": {'muestraGratis': False}})
-
-
-async def comprobacion(app, message, username, USER_COLLECTION):
-    if USER_COLLECTION.find_one({'username': username})["user_vip"] == False and USER_COLLECTION.find_one({'username': username})["muestraGratis"] == False:
-        TXT = '**🔓 GET 30 DAY ACCESS:\n ● 50 CUP\n ● 1 USDT or equivalent\n\n**'
-        TXT += '💳 **TARJETA CUP:** `9238-1299-7234-5971`\n'
-        TXT += '💰 **CRYPTO:** https://bit.ly/3J3pHMA'
-        TXT += '\n\n**__📲 [Send payment capture here](https://t.me/FileMaster_Service)__**'
-        TXT += '\n**__📲 [Enviar captura del pago aquí](https://t.me/FileMaster_Service)__**'
-        return await message.reply(TXT,  disable_web_page_preview=True, reply_markup=InlineKeyboardMarkup([
-            [InlineKeyboardButton("ℹ️ TUTORIAL ℹ️", url="https://t.me/Tutorial_DownloadPack")]])
-        )
-    return True
-
-
-def showFiles(app, SMS, USER_COLLECTION, FREE_USERS, SAVED_MESSAGES, DIRECTORY, username):
+def showFiles(app, SMS, SAVED_MESSAGES, DIRECTORY, username):
     global DIC_FILES
     FREE_PASS = []
-    for i in FREE_USERS.find({}):
-        FREE_PASS.append(i['username'])
 
     if NAME_APP == None:
         LINK = f'http://localhost.8000/{cryptoKey().encriptar(texto=username)}'
@@ -201,20 +80,13 @@ def showFiles(app, SMS, USER_COLLECTION, FREE_USERS, SAVED_MESSAGES, DIRECTORY, 
     else:
         LINK = f'https://{NAME_APP}.{SERVER}.com/{cryptoKey().encriptar(texto=username)}'
         
-    if USER_COLLECTION.find_one({'username': username})["user_vip"] or username in FREE_PASS:
-        MENU = InlineKeyboardMarkup([[InlineKeyboardButton('📦 SUBIR', callback_data='upload'), 
+
+    MENU = InlineKeyboardMarkup([[InlineKeyboardButton('📦 SUBIR', callback_data='upload'), 
                                       InlineKeyboardButton('🗜 COMPRIMIR', callback_data='compres')],
                                      [InlineKeyboardButton('📤 SUBIR TODO', callback_data='up_all'), 
                                       InlineKeyboardButton('🗑 ELIMINAR TODO', callback_data='borrartodo')],
                                      [InlineKeyboardButton('⚙️ OPCIONES', callback_data='option'),
                                       InlineKeyboardButton('📂 ARCHIVOS', url=LINK)]])
-
-    else:
-        MENU = InlineKeyboardMarkup([[
-            InlineKeyboardButton(
-                '⚜️ GET VIP', url='https://t.me/FileMaster_Service'),
-            InlineKeyboardButton('🗜 COMPRIMIR', callback_data='compres')],
-            [InlineKeyboardButton('⚙️ OPCIONES', callback_data='option')]])
 
     try:
         mkdir(username)  # CREAR CARPETA
@@ -222,12 +94,6 @@ def showFiles(app, SMS, USER_COLLECTION, FREE_USERS, SAVED_MESSAGES, DIRECTORY, 
         pass
 
     DIC_ARCH = {}
-    TIME_USE = USER_COLLECTION.find_one({'username': username})['time_use']
-
-    if 30 - TIME_USE > 1:
-        listfiles = f"**📆 Días restantes: {30 - TIME_USE}**\n\n"
-    else:
-        listfiles = f"**📆 Días restantes: {30 - TIME_USE} ⚠️\n\n**"
 
     if len(DIRECTORY.split('/')) > 1:
         MENU = InlineKeyboardMarkup([[InlineKeyboardButton('⬅️', callback_data='back')],
@@ -238,10 +104,10 @@ def showFiles(app, SMS, USER_COLLECTION, FREE_USERS, SAVED_MESSAGES, DIRECTORY, 
     fileSize = 0
     try:
         FOLDER_FILES = listdir(DIRECTORY)
-        listfiles += f"**📂 RUTA: `./{DIRECTORY}`**\n\n"
+        listfiles = f"**📂 RUTA: `./{DIRECTORY}`**\n\n"
     except:
         FOLDER_FILES = listdir(username)
-        listfiles += f"**📂 RUTA: `./{username}`**\n\n"
+        listfiles = f"**📂 RUTA: `./{username}`**\n\n"
 
     FOLDER_FILES.sort()
     count = 0

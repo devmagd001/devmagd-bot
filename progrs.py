@@ -41,7 +41,7 @@ def update_progress_bar(inte, max):
 
 # ===============================================================================# PROGRESS DOWNLOAD
 
-def progressddl(current, total, msg, start, rest):
+def progressddl(current, total, msg, start, rest=0):
     global sec
     act = time() - start
     speed = round((round(current/1000000, 2)/act), 2)
