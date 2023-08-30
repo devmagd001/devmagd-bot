@@ -1217,7 +1217,7 @@ async def despertar(sleep_time=10 * 60):
     while True:
         await asyncsleep(sleep_time)
         async with ClientSession() as session:
-            async with session.get(f'https://{NAME_APP}.render.com/' + "/Despiertate"):
+            async with session.get(f'https://{NAME_APP}.onrender.com/' + "/Despiertate"):
                 pass
 
 async def run_server():
