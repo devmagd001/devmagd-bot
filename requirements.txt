@@ -77,3 +77,4 @@ user-agent
 websockets
 yarl
 yt-dlp
+instaloader
