@@ -10,7 +10,6 @@ from subprocess import call
 from unicodedata import normalize
 from random import randint
 from requests import get
-from encrypt import cryptoKey
 
 DIC_FILES = {}
 NAME_APP = getenv("NAME_APP")
@@ -66,41 +65,26 @@ def download_of_youtube(message, each, bot, url, DIRECTORY):
     # bot.send_message(msg.chat.id,f'❌**Video download failed.**❌ {e}')
     # return False
 
-
 def sumar(a, b):
     return a - b
 
 def showFiles(app, SMS, SAVED_MESSAGES, DIRECTORY, username):
     global DIC_FILES
-    FREE_PASS = []
-
-    if NAME_APP == None:
-        LINK = f'http://localhost.8000/{cryptoKey().encriptar(texto=username)}'
-        print(cryptoKey().encriptar(texto=username))
-    else:
-        LINK = f'https://{NAME_APP}.{SERVER}.com/{cryptoKey().encriptar(texto=username)}'
-        
-
+    LINK = f'https://{NAME_APP}.onrender.com/{username}'
     MENU = InlineKeyboardMarkup([[InlineKeyboardButton('📦 SUBIR', callback_data='upload'), 
                                       InlineKeyboardButton('🗜 COMPRIMIR', callback_data='compres')],
                                      [InlineKeyboardButton('📤 SUBIR TODO', callback_data='up_all'), 
                                       InlineKeyboardButton('🗑 ELIMINAR TODO', callback_data='borrartodo')],
                                      [InlineKeyboardButton('⚙️ OPCIONES', callback_data='option'),
                                       InlineKeyboardButton('📂 ARCHIVOS', url=LINK)]])
-
-    try:
-        mkdir(username)  # CREAR CARPETA
-    except:
-        pass
-
+    try:mkdir(username)  # CREAR CARPETA
+    except:pass
     DIC_ARCH = {}
-
     if len(DIRECTORY.split('/')) > 1:
         MENU = InlineKeyboardMarkup([[InlineKeyboardButton('⬅️', callback_data='back')],
                                      [InlineKeyboardButton('📦 SUBIR', callback_data='upload'),
                                       InlineKeyboardButton('🗜 COMPRIMIR', callback_data='compres')],
                                      [InlineKeyboardButton('⚙️ OPCIONES', callback_data='option')]])
-
     fileSize = 0
     try:
         FOLDER_FILES = listdir(DIRECTORY)

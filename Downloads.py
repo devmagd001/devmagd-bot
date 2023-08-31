@@ -1,6 +1,7 @@
 import requests
 import os
 import gdown
+import instaloader
 from ModulesDownloads.mega_bar import download_url_with_progress
 from ModulesDownloads.wallhavendl import wallhavendl
 from ModulesDownloads.wget import download as downloadwget
@@ -17,7 +18,7 @@ from pydrive2.drive import GoogleDrive
 from gdown import download
 from random import choice
 from time import time
-# from mega import Mega
+from mega import Mega
 from yt_dlp import YoutubeDL
 
 NAME_APP = os.getenv("NAME_APP")
@@ -33,6 +34,7 @@ else:
     gauth.Authorize()
 
 drive = GoogleDrive(gauth)
+dlinsta = instaloader.Instaloader()
 
 def DownloadFiles(app, userbot, message, url, username, directory, format, left):
     keywords = ['youtu.be', 'twitch', 'fb.watch', 'www.xvideos.com', 'www.xnxx.com', 'www.yourupload.com']
@@ -78,6 +80,12 @@ def DownloadFiles(app, userbot, message, url, username, directory, format, left)
         except Exception as x:
             sms.edit_text(f"❌ **No se pudo descargar el archivo: \n{x}** ❌")
         return
+    
+    elif "www.instagram.com" in url:
+        sms = message.reply("📥 **Downloading from Instagram**")
+        post = instaloader.Post.from_shortcode(dlinsta.context, url.split('/')[-2])
+        video = dlinsta.download_post(post, target=directory)
+        sms.edit_text("✅ **Download complete**")
 
     elif "wallhaven.cc" in url:
         try:

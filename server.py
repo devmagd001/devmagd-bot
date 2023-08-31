@@ -3,13 +3,11 @@ import os
 from aiohttp import web
 from aiohttp import streamer
 import jinja2
-from encrypt import cryptoKey
 from tools import sizeof
 
 SERVER = os.getenv('SERVER')
 NAME_APP = os.getenv("NAME_APP")
 """==============Envio de el Archivo por HTTP================="""
-
 
 @streamer
 async def file_sender(writer, file_path=None):
@@ -35,7 +33,7 @@ async def download_file(request):
     :return: un objeto web.Response.
     """
     file_name = request.match_info['file_name']
-    route = cryptoKey().desencriptar(request.match_info['route'])
+    route = request.match_info['route']
 
     file_path = os.path.join(route, file_name)
     headers = {
@@ -66,7 +64,6 @@ async def submit_handler(request):
     url = f"{request.scheme}://{request.host}{request.path}"
     
     # Resto de la lógica de tu aplicación aquí...
-    
     return web.Response(text=f"Texto: {input_text}, URL: {url}")
 
 async def index(request):
@@ -89,7 +86,6 @@ async def index(request):
         html = template.render(data)
     return web.Response(text=html, content_type="text/html")
 
-
 async def usr_path(request):
     """
     La función `usr_path` lee los archivos en la carpeta de un usuario y presenta una plantilla HTML con
@@ -103,12 +99,7 @@ async def usr_path(request):
     file_path = './templates/usr.html'
 
     # Recibiendo el usuario
-    Cryptuser = request.match_info['user']
-    try:
-        user = cryptoKey().desencriptar(Cryptuser)
-    except:
-        return
-
+    user = request.match_info['user']
     # Leyendo los Archivos de la Carpeta del Usuario
     oslist = []
     for i in os.listdir(f'./{user}'):
@@ -118,8 +109,8 @@ async def usr_path(request):
     # Creando la informaci'on q vamos a enviar al html
     data = {'files': oslist,
             'user': user,
-            'Cryptuser': Cryptuser,
-            'enlace': f'https://{NAME_APP}.{SERVER}.com/'}
+            'Cryptuser': user,
+            'enlace': f'https://{NAME_APP}.onrender.com/'}
 
     # Enviando informacion al html
     with open(file_path, "r") as file:

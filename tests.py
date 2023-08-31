@@ -1,6 +1,13 @@
-from requests import post, get
+import instaloader
 
-LINK = 'https://t.me/File_Master2Bot'
+# Crea una instancia de Instaloader
+L = instaloader.Instaloader()
 
-Short = get(
-    f'https://shrinkme.io/api?api=61f51cc3ad79c044e0c86525f31a7b5a30d6c49f&url={LINK}&format=text').text
+# Ingresa el enlace del video que deseas descargar
+video_url = 'https://www.instagram.com/reel/CvAeIlGADSZ/?igshid=MWZjMTM2ODFkZg=='
+
+# Obtén la información del post
+post = instaloader.Post.from_shortcode(L.context, video_url.split('/')[-2])
+
+# Descarga el video
+L.download_post(post, target='./')
