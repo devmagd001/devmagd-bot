@@ -21,10 +21,6 @@
         </thead>
         <tbody>
             <h1>Archivos del Usuario: {{user}}</h1>
-            <form>
-                <input type="text" id="input_text" name="input_text" placeholder="Pegar URL"><br>
-                <button type="submit" formaction="/submit">Enviar</button>
-            </form>
             {% for elem in files -%}
             <tr>
                 <td>
