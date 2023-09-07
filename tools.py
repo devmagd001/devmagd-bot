@@ -278,8 +278,7 @@ def extractInfoVideo(file: str, username: str):
         print(x)
         return "./assets/thumb.jpg", seconds
 
-
-def mostrar_opciones(SMS, USER_COLLECTION, username):
+def mostrar_opciones(SMS):
     OPTION = InlineKeyboardMarkup([
         [InlineKeyboardButton("🌠 ADD IMAGE", callback_data='tumb'), InlineKeyboardButton(
             "📤 AUTO UP.", callback_data='autoup'), InlineKeyboardButton("💬 ADD CAPTION", callback_data='caption')],
@@ -289,22 +288,14 @@ def mostrar_opciones(SMS, USER_COLLECTION, username):
             "🏷 SAVE DESC", callback_data='savedesc')],
         [InlineKeyboardButton('⏮ REGRESAR ⏮', callback_data='backk')]])
 
-    ZZ = USER_COLLECTION.find_one({"username": username})["zip_size"]
-    YF = USER_COLLECTION.find_one({"username": username})["youtube_format"]
-    FF = USER_COLLECTION.find_one({"username": username})[
-        "compression_format"]
-    TF = USER_COLLECTION.find_one({"username": username})["twitch_format"]
-    AU = USER_COLLECTION.find_one({"username": username})["autoUpload"]
-    FV = USER_COLLECTION.find_one({"username": username})["video_format"]
-    SV = USER_COLLECTION.find_one({"username": username})["savedesc"]
     text = "**             ⚙️ OPTIONS ⚙️\n"
     text += "\n🌠 ADD IMAGE: __Para asignar una imagen que se mostrará en el archivo al subirlo a Telegram, envíe la imagen deseada mediante el botón correspondiente.__\n"
     text += "\n💬 ADD CAPTION: __Para añadir un caption o subtítulo personalizado a los archivos subidos por el Bot.__\n"
-    text += f"\n🗜 ZIP SIZE: __Para subir los archivos a Telegram, indique el tamaño en megabytes (MB).__ [ `{ZZ} MB` ]\n"
-    text += f"\n📚 FILE FORMAT: __Para comprimir los archivos y reducir su tamaño, elija el formato de compresión que prefiera entre las opciones disponibles: ZIP, 7z__ [ `{FF}` ]\n"
-    text += f"\n📤 AUTO UP.: __Para activar o desactivar la subida automática de los archivos descargados a Telegram, marque o desmarque la casilla correspondiente.__ [ `{AU}` ]\n"
-    text += f"\n🎞 VIDEO UPLOAD: __Para elegir si los vídeos se subirán a Telegram como documento o como vídeo, seleccione la opción que prefiera entre las dos disponibles.__ [ `{FV}` ]\n"
-    text += f"\n🏷 SAVE DESC: __Para guardar los archivos con el nombre que aparece en su descripción.__ [ `{SV}` ]\n**"
+    text += f"\n🗜 ZIP SIZE: __Para subir los archivos a Telegram, indique el tamaño en megabytes (MB).\n"
+    text += f"\n📚 FILE FORMAT: __Para comprimir los archivos y reducir su tamaño, elija el formato de compresión que prefiera entre las opciones disponibles: ZIP, 7z__\n"
+    text += f"\n📤 AUTO UP.: __Para activar o desactivar la subida automática de los archivos descargados a Telegram, marque o desmarque la casilla correspondiente.__\n"
+    text += f"\n🎞 VIDEO UPLOAD: __Para elegir si los vídeos se subirán a Telegram como documento o como vídeo, seleccione la opción que prefiera entre las dos disponibles.__\n"
+    text += f"\n🏷 SAVE DESC: __Para guardar los archivos con el nombre que aparece en su descripción.__\n**"
     SMS.reply(text, reply_markup=OPTION)
 
 def download_youtube(message, URL, CHOSE_FORMAT, username, SAVED_MESSAGES): 
@@ -338,3 +329,4 @@ def download_youtube(message, URL, CHOSE_FORMAT, username, SAVED_MESSAGES):
     unlink(f'{username}.jpg')
     SAVED_MESSAGES[username] = {"sms_video": sms_video}
     return CHOSE_FORMAT, SAVED_MESSAGES
+

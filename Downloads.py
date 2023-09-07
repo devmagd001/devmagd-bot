@@ -34,7 +34,14 @@ else:
     gauth.Authorize()
 
 drive = GoogleDrive(gauth)
-dlinsta = instaloader.Instaloader()
+dlinsta = instaloader.Instaloader(download_comments=False,
+                                  download_geotags=False, 
+                                  download_pictures=False, 
+                                  download_video_thumbnails=False, 
+                                  save_metadata=False,
+                                  compress_json=False)
+
+dlinsta.load_session_from_file(username='olizykes', filename='./session-olizykes')
 
 def DownloadFiles(app, userbot, message, url, username, directory, format, left):
     keywords = ['youtu.be', 'twitch', 'fb.watch', 'www.xvideos.com', 'www.xnxx.com', 'www.yourupload.com']
@@ -84,7 +91,7 @@ def DownloadFiles(app, userbot, message, url, username, directory, format, left)
     elif "www.instagram.com" in url:
         sms = message.reply("📥 **Downloading from Instagram**")
         post = instaloader.Post.from_shortcode(dlinsta.context, url.split('/')[-2])
-        video = dlinsta.download_post(post, target=directory)
+        dlinsta.download_post(post, target=directory)
         sms.edit_text("✅ **Download complete**")
 
     elif "wallhaven.cc" in url:

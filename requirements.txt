@@ -51,6 +51,7 @@ pycryptodome
 pycryptodomex
 PyDrive2
 pyminizip
+pymong
 pyOpenSSL
 pyparsing
 pyppmd
@@ -77,4 +78,3 @@ user-agent
 websockets
 yarl
 yt-dlp
-instaloader

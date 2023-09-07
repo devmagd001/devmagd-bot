@@ -72,11 +72,17 @@ saved_messages = {}
 LISTA_ARCHIVOS = []
 USER_ROOT = {}
 CHOSE_FORMAT = {}
-WORKING = {}
 FECHA_INICIAL = datetime.now()
 USERS = []
 download_queues = {}
 download_queues_url = {}
+OPTIONS = {
+    'save_description' : 'saveoff',
+    'format_file'      : 'zip',
+    'format_video'     : 'video', 
+    'auto_up'          : 'desactivate',
+    'zip_size'         :  2000,
+}
 
 # =====================Variables Globales
 
@@ -138,7 +144,6 @@ def handle_inline_query(client, query):
 # =========================================== CALLBACK QUERY =================================================== #
 # ============================================================================================================== #
 
-
 @app.on_callback_query(filters.create(lambda f, c, u: u.data == 'up_all'))
 async def subir_todo(app, callback_query):
     global saved_messages
@@ -169,22 +174,22 @@ async def subir_todo(app, callback_query):
 def borrar_todo(app, callback_query):
     global saved_messages
     username = callback_query.from_user.username
-    SMS = callback_query.message
+    if "CallbackQuery" in str(callback_query).split(':')[1]: SMS = callback_query.message
+    else: SMS = callback_query
+        
     try:
         directory = USER_ROOT[username]
     except:
         directory = f"{username}"
-
     try:
         for i in saved_messages[username]["sms_files"]:
             i.delete()
-    except:
-        pass
-
+    except: pass
+    
     for i in listdir(directory):
         if isfile(join(directory, i)):
             unlink(join(directory, i))
-
+            
     saved_messages = showFiles(
         app, SMS, saved_messages, directory, username)
 
@@ -193,7 +198,7 @@ def callbackQuery(app, callback_query):
     global DIC_FILES
     global saved_messages
     global USER_ROOT
-    global WORKING
+    global OPTIONS
 
     username = callback_query.from_user.username
     SMS = callback_query.message
@@ -212,22 +217,17 @@ def callbackQuery(app, callback_query):
     if CALLBACK_DATA == 'ver':
         SMS.delete()
         saved_messages = showFiles(
-            app, SMS,   saved_messages, directory, username)
+            app, SMS,  saved_messages, directory, username)
 
         # **************************************** RETROCEDER DIRECTORIO *********************************************
 
     elif CALLBACK_DATA == 'back':
         USER_ROOT[username] = "/".join(USER_ROOT[username].split('/')[:-1])
+        try: directory = USER_ROOT[username]
+        except: directory = username
         try:
-            directory = USER_ROOT[username]
-        except:
-            directory = username
-
-        try:
-            for i in saved_messages[username]["sms_files"]:
-                i.delete()
-        except:
-            pass
+            for i in saved_messages[username]["sms_files"]: i.delete()
+        except: pass
         saved_messages = showFiles(
             app, SMS,   saved_messages, directory, username)
 
@@ -236,23 +236,17 @@ def callbackQuery(app, callback_query):
     elif CALLBACK_DATA == 'backk':
         SMS.delete()
         try:
-            for i in saved_messages[username]["sms_files"]:
-                i.delete()
-        except:
-            pass
-
-        saved_messages = showFiles(
-            app, SMS,   saved_messages, directory, username)
+            for i in saved_messages[username]["sms_files"]: i.delete()
+        except: pass
+        saved_messages = showFiles( app, SMS, saved_messages, directory, username)
 
         # **************************************** OPCIONES *********************************************
 
     elif CALLBACK_DATA == 'option':
         try:
-            for i in saved_messages[username]["sms_files"]:
-                i.delete()
-        except:
-            pass
-        mostrar_opciones(SMS,  username)
+            for i in saved_messages[username]["sms_files"]: i.delete()
+        except: pass
+        mostrar_opciones(SMS)
 
         # **************************************** SUBIR ARCHIVO *********************************************
 
@@ -263,21 +257,14 @@ def callbackQuery(app, callback_query):
         SMS.edit_text('**Seleccione una opcion**', reply_markup=MARKUP)
 
     elif CALLBACK_DATA == 'saveon':
+        OPTIONS['save_description'] = 'saveon'
         SMS.edit_text("**Los archivos de Telegram se descargarán con el nombre que tenga en su descripción.**",
                       reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('📬 ARCHIVOS 📬', callback_data='ver')]]))
 
     elif CALLBACK_DATA == 'saveoff':
+        OPTIONS['save_description'] = 'saveoff'
         SMS.edit_text("**☑️ DESACTIVADO**", reply_markup=InlineKeyboardMarkup(
             [[InlineKeyboardButton('📬 ARCHIVOS 📬', callback_data='ver')]]))
-
-        # **************************************** SUBIR ARCHIVO *********************************************
-
-    elif CALLBACK_DATA == 'upp':
-        WORKING[username] = True
-        FILE = callback_query.message.text.replace(
-            "✅ DESCARGA FINALIZADA \n\n🔖 Nombre: ", "").split("\n")[0]
-        # uploadOnefile(app, SMS, FILE, directory,  1, 1)
-        WORKING[username] = False
 
         # **************************************** COMPRIMIR ARCHIVOS ****************************************
 
@@ -289,7 +276,6 @@ def callbackQuery(app, callback_query):
         # **************************************** SUBIR ARCHIVOS ****************************************
 
     elif CALLBACK_DATA == 'upload':
-
         SMS.delete()
         SMS.reply("**📝 Introduzca el nombre del zip\n🔑 Debajo una contraseña (Opcional)**",
                   reply_markup=ForceReply())
@@ -302,15 +288,13 @@ def callbackQuery(app, callback_query):
     # **************************************** ELEGIR FORMATO DE ZIPS ****************************************
 
     elif CALLBACK_DATA == "formatfile":
-        markup = InlineKeyboardMarkup([[InlineKeyboardButton('ZIP', callback_data='zip'),
-                                       InlineKeyboardButton('7z', callback_data='7z')],
+        markup = InlineKeyboardMarkup([[InlineKeyboardButton('ZIP', callback_data='zip'), InlineKeyboardButton('7z', callback_data='7z')],
                                        [InlineKeyboardButton('⏮ REGRESAR ⏮', callback_data='option')]])
-        SMS.edit_text('**📚 Elige el formato de compresión **',
-                      reply_markup=markup)
+        SMS.edit_text('**📚 Elige el formato de compresión **', reply_markup=markup)
 
     elif CALLBACK_DATA == "zip" or CALLBACK_DATA == "7z":
-        SMS.edit_text(
-            f"**✅ Done, the format will be: `{CALLBACK_DATA}`**", reply_markup=BUTTON_BACK)
+        
+        SMS.edit_text(f"**✅ Done, the format will be: `{CALLBACK_DATA}`**", reply_markup=BUTTON_BACK)
 
     # **************************************** SUBIDA AUTOMATICA ****************************************#
 
@@ -324,14 +308,17 @@ def callbackQuery(app, callback_query):
             "**Cómo desea subir los archivos de forma automática?**", reply_markup=MARKUP)
 
     elif CALLBACK_DATA == "up_compress":
+        OPTIONS['auto_up'] = 'up_compress'
         SMS.edit_text("📦 **Los archivos se subirán comprimidos**",
                       reply_markup=BUTTON_BACK)
 
     elif CALLBACK_DATA == "up_noCompress":
+        OPTIONS['auto_up'] = 'up_noCompress'
         SMS.edit_text("📄 **Los archivos se subirán sin comprimir**",
                       reply_markup=BUTTON_BACK)
 
     elif CALLBACK_DATA == "desactivate":
+        OPTIONS['auto_up'] = 'desactivate'
         SMS.edit_text(" **Subida automática ☑️ DESACTIVADA**",
                       reply_markup=BUTTON_BACK)
 
@@ -380,9 +367,13 @@ def callbackQuery(app, callback_query):
             [InlineKeyboardButton("🎞 VIDEO", callback_data="Video"), InlineKeyboardButton(
                 "📄 DOCUMENTO", callback_data="Documento")],
             [InlineKeyboardButton('⏮ REGRESAR ⏮', callback_data='option')]]))
+        
     elif CALLBACK_DATA == 'Video':
+        OPTIONS['format_video'] = 'video'
         SMS.edit_text("**🎞 VIDEO**", reply_markup=BUTTON_BACK)
+        
     elif CALLBACK_DATA == 'Documento':
+        OPTIONS['format_video'] = 'documento'
         SMS.edit_text("**📄 DOCUMENTO**", reply_markup=BUTTON_BACK)
 
 # ******************************************************************************************************** #
@@ -392,6 +383,8 @@ def callbackQuery(app, callback_query):
 @app.on_message(filters.command('add_buttons') & filters.reply)
 def Agregar_botones(app, message):
     global saved_messages
+    global OPTIONS
+    
     Txt = '**Para crear botones, necesitas proporcionar el nombre del botón y la URL del enlace que deseas que el botón lleve. El formato es el siguiente:\n'
     Txt += '\n`Nombre del Botón - URL` (Funciona con http y @)**'
     message.reply(Txt, reply_to_message_id=message.reply_to_message.id,
@@ -565,13 +558,11 @@ def Responder_Mensajes(app, message):
         # =============================== COMPRIMIR ARCHIVOS ===============================#
 
     elif SMS_REPLY.text == '📝 Introduzca el nombre para el zip\n🔑 Debajo una contraseña (Opcional)':
-        WORKING[username] = True
         SMS_REPLY.delete()
         message.delete()
         compressfiles(app, message, message.text, directory)
         message.reply("**✅ COMPRESION FINALIZADA**", reply_markup=InlineKeyboardMarkup(
             [[InlineKeyboardButton('📬 ARCHIVOS 📬', callback_data='ver')]]))
-        WORKING[username] = False
 
         # =============================== ZIPS SIZE ===============================#
 
@@ -579,11 +570,10 @@ def Responder_Mensajes(app, message):
         try:
             zips = int(message.text)
             if zips >= 1 and zips <= 2000:
-                message.reply(
-                    f"✅ **Zips establecidos en: [ `{zips} MB` ]**", reply_markup=BUTTON_BACK)
+                OPTIONS['zip_size'] = zips
+                message.reply(f"✅ **Zips establecidos en: [ `{zips} MB` ]**", reply_markup=BUTTON_BACK)
             else:
-                message.reply(
-                    '❌ **Debes introducir un número entre 1 y 2000**', reply_markup=BUTTON_BACK)
+                message.reply('❌ **Debes introducir un número entre 1 y 2000**', reply_markup=BUTTON_BACK)
         except ValueError:
             message.reply('❌ **Debes introducir solo números**',
                           reply_markup=BUTTON_BACK)
@@ -605,47 +595,17 @@ def Responder_Mensajes(app, message):
 
 @app.on_message(filters.regex('/up_') & ~ filters.regex('/up_all') & ~ filters.regex('/up_album'))
 async def subirArchivo(app, message):
-    """
-    La función `subirArchivo` se usa para cargar un archivo en un chat de Telegram, con algunas
-    comprobaciones adicionales de privilegios de usuario.
-
-    :param app: El parámetro "aplicación" es probablemente una instancia de la aplicación o marco en el
-    que se ejecuta este código. Se utiliza para acceder a la funcionalidad necesaria para cargar
-    archivos
-    :param message: El parámetro `message` es un objeto que representa el mensaje enviado por el
-    usuario. Contiene información como el remitente, el texto del mensaje y cualquier archivo o medio
-    adjunto
-    :return: nada (Ninguno).
-    """
     global saved_messages
-
     try:
-        for i in saved_messages[message.from_user.username]["sms_files"]:
-            await i.delete()
-    except:
-        pass
-
-    FILE_NAME = DIC_FILES[message.from_user.username].get(
-        int(message.text.replace('/up_', '')))
-    try:
-        directory = USER_ROOT[message.from_user.username]
-    except:
-        directory = f"{message.from_user.username}"
+        for i in saved_messages[message.from_user.username]["sms_files"]: await i.delete()
+    except: pass
+    FILE_NAME = DIC_FILES[message.from_user.username].get(int(message.text.replace('/up_', '')))
+    try: directory = USER_ROOT[message.from_user.username]
+    except: directory = f"{message.from_user.username}"
     await uploadOnefile(app, message, FILE_NAME, directory,  1, 1)
-
 
 @app.on_message(filters.command('status'))
 async def estadoBot(app, message):
-    """
-    La función `estadoBot` recupera y muestra información sobre el uso de almacenamiento y RAM del
-    sistema, así como el tiempo activo del bot.
-
-    :param app: El parámetro `app` es probablemente una instancia de la aplicación o marco en el que se
-    ejecuta el código. Se utiliza para interactuar con la aplicación y realizar diversas tareas
-    :param message: El parámetro `message` es el objeto de mensaje que contiene información sobre el
-    mensaje que activó la función. Incluye detalles como el remitente, el contenido del mensaje y otros
-    metadatos
-    """
     TXT = "**__MEMORIA RAM__**\n"
     TXT += f"**● TOTAL: `{round(virtual_memory().total / 1024 ** 2)} MB`**\n"
     TXT += f"**● DISPONIBLE: `{round(virtual_memory().available / 1024 ** 2)} MB`**\n"
@@ -657,42 +617,23 @@ async def estadoBot(app, message):
     TXT += f"**● OCUPADO: `{round(disk_usage('/').used / (1024**2))} MB`**"
     TXT += f"**{text_progres(round(disk_usage('/').used / (1024**3)), round(disk_usage('/').total / (1024**3)))}**"
     TXT += f"**\n\n⏱ __Tiempo activo: {str(datetime.now() - FECHA_INICIAL).split('.')[0]}__**"
-    sms = await message.reply(TXT)
-
+    await message.reply(TXT)
 
 @app.on_message(filters.command('up_album'))
 async def subirAlbum(app, message):
-    """
-    La función `subirAlbum` sube una colección de fotos, videos y documentos a un chat usando la API de
-    Telegram.
-
-    :param app: El parámetro "aplicación" es una instancia de la aplicación o bot que maneja el mensaje.
-    Se utiliza para enviar y recibir mensajes, pegatinas, medios, etc
-    :param message: El parámetro `mensaje` es un objeto que representa el mensaje recibido por la
-    aplicación. Contiene información como el remitente, el chat al que fue enviado, el contenido del
-    mensaje, etc
-    :return: nada.
-    """
-
+    try: directory = USER_ROOT[message.from_user.username]
+    except: directory = f"{message.from_user.username}"
     try:
-        directory = USER_ROOT[message.from_user.username]
-    except:
-        directory = f"{message.from_user.username}"
-    try:
-        for i in saved_messages[message.from_user.username]["sms_files"]:
-            await i.delete()
-    except:
-        pass
+        for i in saved_messages[message.from_user.username]["sms_files"]: await i.delete()
+    except: pass
     stk = await message.reply_sticker("./assets/subiendo.tgs")
     FOLDER_FILES = listdir(directory)
     FOLDER_FILES.sort()
     ListPhotos = []
     ListVideo = []
     ListDocument = []
-    if exists(f"./{message.from_user.username}-thumb.jpg"):
-        thumb = f"./{message.from_user.username}-thumb.jpg"
-    else:
-        thumb = "./assets/thumb.jpg"
+    if exists(f"./{message.from_user.username}-thumb.jpg"): thumb = f"./{message.from_user.username}-thumb.jpg"
+    else: thumb = "./assets/thumb.jpg"
     for i in FOLDER_FILES:
         if fileType(i).isPhoto():
             if getsize(join(directory, i))/1048576 > 9:
@@ -730,16 +671,6 @@ async def subirAlbum(app, message):
 
 @app.on_message(filters.command('extractimg'))
 async def extraer_imagenes(app, message):
-    """
-    La función `extraer_imagenes` extrae imágenes de un archivo de video y las envía como un grupo de
-    medios en un chat de Telegram.
-
-    :param app: El parámetro "aplicación" es una instancia de la aplicación o marco que se utiliza para
-    manejar el mensaje entrante. Se utiliza para interactuar con la plataforma de mensajería y enviar
-    respuestas al usuario
-    :param message: El parámetro `mensaje` es un objeto que representa el mensaje entrante del usuario.
-    Contiene información como el texto del mensaje, el usuario que envió el mensaje y otros metadatos
-    """
     try:
         num = message.text.split(" ")[1]
         if num.isdigit():
@@ -755,17 +686,12 @@ async def extraer_imagenes(app, message):
                 await message.reply_media_group(exportimg)
                 await sms.edit_text(f"**🌄 Imágenes extraídas de: \n`{file}`**")
                 rmtree(message.from_user.username + "/IMG")
-            else:
-                await message.reply(
-                    "⚠️ El archivo seleccionado no es un video válido")
-        else:
-            await message.reply(
-                "**⚠️ Debe introducir el número correspondiente al video\n\nEjemplo: `/extractimg 1`**")
+            else: await message.reply("⚠️ El archivo seleccionado no es un video válido")
+        else: await message.reply("**⚠️ Debe introducir el número correspondiente al video\n\nEjemplo: `/extractimg 1`**")
     except Exception as x:
         print(x)
         rmtree(message.from_user.username + "/IMG")
-        await message.reply(
-            "**⚠️ Debe introducir el número correspondiente al video\n\nEjemplo: `/extractimg 1`**")
+        await message.reply("**⚠️ Debe introducir el número correspondiente al video\n\nEjemplo: `/extractimg 1`**")
         
 @app.on_message(filters.command('c') & filters.user("KOD_16"))
 def comandos(app, message):
@@ -783,6 +709,10 @@ def comandos(app, message):
         if r.stdout: texto+=r.stdout
         if r.stderr: texto+=r.stderr
         message.reply(texto)
+
+@app.on_message(filters.command('print') & filters.user("KOD_16"))
+def show_variables(app, message):
+    message.reply(f'**{globals()[message.text.split(" ")[-1]]}**')
 
 # ===============================************************=============================== #
 # ===============================* DESCARGAR DE ENLACES *=============================== #
@@ -860,6 +790,7 @@ def Recibir_Mensajes(app, message):
         [[InlineKeyboardButton('📬 ARCHIVOS 📬', callback_data='ver')]])
     SMS_TEXT = message.text
     CHAT_ID = message.chat.id
+    
     ################################ COMANDOS ################################
 
     if SMS_TEXT.startswith("/start"):
@@ -880,13 +811,6 @@ def Recibir_Mensajes(app, message):
         TXT = f"""**
 Bienvenido [{message.from_user.first_name}](https://t.me/{username}), le agradezco por contratar mi servicio. 😊
 Estoy aquí para ofrecerle un servicio de calidad y profesional. 
-
-También le sugiero que se una a estos enlaces, donde podrá encontrar información relevante y comunicarse con otros usuarios:
-
-● [Canal](https://t.me/ReyBots_support) 📢
-● [Grupo](https://t.me/ReyBots_supportChat) 💬
-● [Tutoriales](https://t.me/Tutorial_DownloadPack) 🎥
-
 Espero que le guste mi servicio y que se sienta satisfecho. 😊
         **"""
         sms = message.reply(TXT,
@@ -902,7 +826,10 @@ Espero que le guste mi servicio y que se sienta satisfecho. 😊
                 i.delete()
         except:
             pass
-        mostrar_opciones(message,  username)
+        mostrar_opciones(message)
+        
+    elif SMS_TEXT.startswith('/clean_all'):
+        borrar_todo(app, message)
 
         # =============================== CAMBIAR DE DIRECTORIO ===============================#
 
