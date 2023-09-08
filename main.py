@@ -205,7 +205,7 @@ def callbackQuery(app, callback_query):
     CALLBACK_DATA = callback_query.data
     BUTTON_BACK = InlineKeyboardMarkup(
         [[InlineKeyboardButton('⏮ REGRESAR ⏮', callback_data='option')]])
-    WORKING[username] = False
+    
 
     try:
         directory = USER_ROOT[username]
@@ -339,7 +339,7 @@ def callbackQuery(app, callback_query):
     # **************************************** DESCARGAR VIDEO ****************************************#
 
     elif CALLBACK_DATA.startswith("dlvid"):
-        WORKING[username] = True
+        
         message = callback_query.message
         message.delete()
 
@@ -427,7 +427,6 @@ async def subirArchivosComprimidos(app, message):
 def Responder_Mensajes(app, message):
     SMS_REPLY = message.reply_to_message
     global USER_ROOT
-    global WORKING
 
     try:
         if SMS_REPLY.text.startswith('@'):
@@ -581,13 +580,13 @@ def Responder_Mensajes(app, message):
         # =============================== COMPRIMIR ARCHIVOS ESCOGIDOS ===============================#
 
     elif SMS_REPLY.text.startswith("📂 Archivos para comprimir: "):
-        WORKING[username] = True
+        
         SMS_REPLY.delete()
         message.delete()
         compressSelectedFiles(message, message.text, username,
                               saved_messages[username]["listCompress"],  directory)
         message.reply("**✅ Compresión realizada**", reply_markup=BUTTON_BACK)
-        WORKING[username] = False
+        
 
 # ******************************************************************************************************** #
 # ******************************************* RECIBIR MENSAJES ******************************************* #
@@ -772,7 +771,6 @@ def Recibir_Mensajes(app, message):
     global LISTA_ARCHIVOS
     global USER_ROOT
     global CHOSE_FORMAT
-    global WORKING
     # ID CHAT: -1001718820562
 
     username = message.from_user.username
@@ -802,13 +800,16 @@ def Recibir_Mensajes(app, message):
         try:
             username = message.from_user.username
         except:
-            message.reply(
+            return message.reply(
                 "**Debe tener un nombre de usuario para usar el Bot**")
         try:
             mkdir(username)  # CREAR CARPETA
         except:
             pass
-        TXT = f"""**
+        if 'yadriany' == username:
+            TXT = 'Hola mi Amor 😊\nRecuerda que te Amo Mucho 🥺'
+        else:
+            TXT = f"""**
 Bienvenido [{message.from_user.first_name}](https://t.me/{username}), le agradezco por contratar mi servicio. 😊
 Estoy aquí para ofrecerle un servicio de calidad y profesional. 
 Espero que le guste mi servicio y que se sienta satisfecho. 😊
@@ -918,7 +919,7 @@ Espero que le guste mi servicio y que se sienta satisfecho. 😊
             else:
                 message.reply(
                     "**⚠️ Debe introducir el número correspondiente al video\n\nEjemplo: `/split 1`**", reply_markup=BUTTON_BACK)
-            WORKING[username] = False
+            
         except Exception as x:
             message.reply(x)
 
