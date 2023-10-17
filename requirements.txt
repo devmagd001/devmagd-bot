@@ -83,3 +83,4 @@ pyzipper
 unrar
 pyunpack
 pytube
+distro

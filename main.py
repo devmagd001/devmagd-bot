@@ -1,4 +1,6 @@
 import pytz
+import platform
+import distro
 from shutil import rmtree, move
 from UploadFiles import uploadFiles, uploadOnefile, compressfiles, compressSelectedFiles
 from progrs import progressddl
@@ -64,8 +66,6 @@ from download_url import descargar_archivos_url
 from pyzipper import AESZipFile
 from pyunpack import Archive
 from rarfile import RarFile
-
-system("sudo apt install unrar")
 
 
 @app.on_message(filters.text & filters.forwarded & filters.private)
@@ -1449,6 +1449,9 @@ async def run_server():
 
 
 if __name__ == "__main__":
+    print(platform.system())
+    print(distro.name())
+
     app.loop.run_until_complete(run_server())
     if not DEBUG:
         app.loop.run_until_complete(despertar())
