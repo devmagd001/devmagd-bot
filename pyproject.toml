@@ -1,0 +1,37 @@
+[tool.poetry]
+name = "filemaster-personal"
+version = "0.1.0"
+description = ""
+authors = ["Rey <baitycasper@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.8,<3.12"
+pyrogram = "^2.0.106"
+psutil = "^5.9.5"
+pytz = "^2023.3.post1"
+aiohttp = "^3.8.5"
+rarfile = "^4.1"
+py7zr = "^0.20.6"
+requests = "^2.31.0"
+opencv-contrib-python-headless = "^4.8.1.78"
+mediafire = "^0.6.1"
+pyminizip = "^0.2.6"
+tgcrypto = "^1.2.5"
+logzero = "^1.7.0"
+yt-dlp = "^2023.9.24"
+jinja2 = "^3.1.2"
+pydrive2 = "^1.17.0"
+gdown = "^4.7.1"
+instaloader = "^4.10"
+user-agent = "^0.1.10"
+mega = "^0.2.11"
+pyzipper = "^0.3.6"
+pyunpack = "^0.3"
+rembg = "^2.0.50"
+pytube = "^15.0.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

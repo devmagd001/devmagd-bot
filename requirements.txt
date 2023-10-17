@@ -78,3 +78,8 @@ websockets
 yarl
 yt-dlp
 instaloader
+mediafire
+pyzipper
+unrar
+pyunpack
+pytube
