@@ -46,7 +46,7 @@ from time import time as tm, gmtime, sleep
 from random import randint
 from pyrogram.methods.utilities.idle import idle
 from Downloads import DownloadFiles
-from os import listdir, mkdir, getenv, unlink, rename
+from os import listdir, mkdir, getenv, unlink, rename, system
 from os.path import getsize, join, isdir, isfile, exists, splitext
 from zipfile import ZipFile
 from rarfile import RarFile
@@ -63,6 +63,9 @@ from variables_globales import *
 from download_url import descargar_archivos_url
 from pyzipper import AESZipFile
 from pyunpack import Archive
+from rarfile import RarFile
+
+system("sudo apt install unrar")
 
 
 @app.on_message(filters.text & filters.forwarded & filters.private)
@@ -1290,13 +1293,8 @@ Espero que le guste mi servicio y que se sienta satisfecho. 😊
                             )
 
                 elif FILE.endswith("rar"):
-                    with Archive(join(directory, FILE)) as rf:
-                        if password == "":
-                            rf.extractall(join(directory, splitext(FILE)[0]))
-                        else:
-                            rf.extractall(
-                                join(directory, splitext(FILE)[0]), password=password
-                            )
+                    with RarFile(join(directory, FILE), "r") as rf:
+                        rf.extractall(join(directory, splitext(FILE)[0]), pwd=password)
 
                 elif FILE.endswith("7z"):
                     with SevenZipFile(join(directory, FILE), mode="r") as z:
@@ -1351,6 +1349,7 @@ def download_files_telegram(username):
         pass
 
     while not queue.empty():
+        sleep(3)
         message, directory = queue.get()
         sms = message.reply("**🚛 Downloading...**", quote=True)
         start = tm()
